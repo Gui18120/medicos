@@ -11,6 +11,8 @@ type Medico = {
   created_at: string
 }
 
+type Hospital = { id: string; nome: string }
+
 type CSVRow = { nome: string; crm: string; pin: string; email: string }
 
 const emptyForm = { nome: '', crm: '', email: '', pin: '' }
@@ -43,6 +45,8 @@ export default function MedicosPage() {
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [hospitais, setHospitais] = useState<Hospital[]>([])
+  const [selectedHospitais, setSelectedHospitais] = useState<string[]>([])
 
   const [showImport, setShowImport] = useState(false)
   const [csvRows, setCsvRows] = useState<CSVRow[]>([])
@@ -58,7 +62,13 @@ export default function MedicosPage() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchMedicos() }, [])
+  const fetchHospitais = async () => {
+    const res = await fetch('/api/hospitais')
+    const data = await res.json()
+    setHospitais(data.hospitais || [])
+  }
+
+  useEffect(() => { fetchMedicos(); fetchHospitais() }, [])
 
   const handleSave = async () => {
     setFormError('')
@@ -82,18 +92,31 @@ export default function MedicosPage() {
     const data = await res.json()
     if (!res.ok) { setFormError(data.error || 'Erro ao salvar.'); setSaving(false); return }
 
+    const medicoId = editId ?? data.medico?.id
+    if (medicoId) {
+      await fetch(`/api/medicos/${medicoId}/hospitais`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hospitalIds: selectedHospitais }),
+      })
+    }
+
     setSaving(false)
     setForm(emptyForm)
+    setSelectedHospitais([])
     setEditId(null)
     setShowForm(false)
     fetchMedicos()
   }
 
-  const handleEdit = (m: Medico) => {
+  const handleEdit = async (m: Medico) => {
     setForm({ nome: m.nome, crm: m.crm, email: m.email || '', pin: '' })
     setEditId(m.id)
     setShowForm(true)
     setFormError('')
+    const res = await fetch(`/api/medicos/${m.id}/hospitais`)
+    const data = await res.json()
+    setSelectedHospitais(data.hospitalIds || [])
   }
 
   const handleToggleAtivo = async (m: Medico) => {
@@ -113,6 +136,7 @@ export default function MedicosPage() {
 
   const handleCancel = () => {
     setForm(emptyForm)
+    setSelectedHospitais([])
     setEditId(null)
     setShowForm(false)
     setFormError('')
@@ -293,6 +317,29 @@ export default function MedicosPage() {
               </div>
             ))}
           </div>
+          {hospitais.length > 0 && (
+            <div className="col-span-1 sm:col-span-2 flex flex-col gap-2 mt-1">
+              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hospitais / Clínicas</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {hospitais.map(h => (
+                  <label key={h.id} className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={selectedHospitais.includes(h.id)}
+                      onChange={() => setSelectedHospitais(prev =>
+                        prev.includes(h.id) ? prev.filter(id => id !== h.id) : [...prev, h.id]
+                      )}
+                      className="w-4 h-4 rounded text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                      {h.nome}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {formError && (
             <div className="mt-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-4 py-3">
               <p className="text-red-600 dark:text-red-400 text-sm">{formError}</p>

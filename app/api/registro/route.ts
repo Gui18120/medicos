@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { medicoId, pin, token, tipo, selfie, latitude, longitude } = body
+  const { medicoId, pin, token, tipo, selfie, latitude, longitude, hospitalId } = body
 
   if (!isValidToken(token)) {
     return NextResponse.json({ error: 'QR Code expirado. Escaneie o codigo atual.' }, { status: 400 })
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
     longitude: longitude ?? null,
     selfie_url,
     token_usado: token,
+    hospital_id: hospitalId ?? null,
   })
 
   if (insertError) {

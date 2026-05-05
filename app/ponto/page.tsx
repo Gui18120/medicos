@@ -11,6 +11,7 @@ type Medico = { id: string; nome: string; crm: string }
 function PontoContent() {
   const params = useSearchParams()
   const token = params.get('token') ?? ''
+  const hospitalId = params.get('hospital') ?? ''
 
   const [step, setStep] = useState<Step>('validating')
   const [medicos, setMedicos] = useState<Medico[]>([])
@@ -147,6 +148,7 @@ function PontoContent() {
           selfie,
           latitude,
           longitude,
+          hospitalId: hospitalId || null,
         }),
       })
 

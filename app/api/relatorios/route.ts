@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { cookies } from 'next/headers'
-import { getAdminSessionToken } from '@/lib/token'
+import { parseSessionCookie, getAdminSessionToken } from '@/lib/auth'
 
 async function isAdmin() {
   const cookieStore = await cookies()
-  return cookieStore.get('admin_session')?.value === getAdminSessionToken()
+  const session = cookieStore.get('admin_session')?.value
+  if (!session) return false
+  const parsed = parseSessionCookie(session)
+  if (parsed && parsed.cargo === 'admin') return true
+  return session === getAdminSessionToken()
 }
 
 export async function GET(request: NextRequest) {
@@ -18,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from('registros')
-    .select('*, medicos(nome, crm)')
+    .select('*, medicos(nome, crm), hospitais(nome)')
     .order('timestamp', { ascending: false })
 
   if (dataInicio) query = query.gte('timestamp', `${dataInicio}T00:00:00`)

@@ -10,6 +10,7 @@ type Registro = {
   longitude: number | null
   selfie_url: string | null
   medicos: { nome: string; crm: string }
+  hospitais: { nome: string } | null
 }
 
 type DiaSummary = {
@@ -68,7 +69,7 @@ export default function RelatoriosPage() {
   const totalHorasFormatted = `${Math.floor(totalHoras / 3600000)}h${Math.floor((totalHoras % 3600000) / 60000).toString().padStart(2, '0')}m`
 
   const exportCSV = () => {
-    const rows = [['Medico', 'CRM', 'Tipo', 'Data', 'Hora', 'GPS']]
+    const rows = [['Medico', 'CRM', 'Tipo', 'Data', 'Hora', 'Hospital', 'GPS']]
     for (const r of registros) {
       rows.push([
         r.medicos?.nome ?? '',
@@ -76,6 +77,7 @@ export default function RelatoriosPage() {
         r.tipo,
         r.timestamp.slice(0, 10),
         formatHora(r.timestamp),
+        r.hospitais?.nome ?? '',
         r.latitude ? `${r.latitude},${r.longitude}` : '',
       ])
     }
@@ -238,9 +240,10 @@ export default function RelatoriosPage() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 text-sm truncate">{r.medicos?.nome ?? '—'}</p>
+                    <p className="font-medium text-gray-800 dark:text-white text-sm truncate">{r.medicos?.nome ?? '—'}</p>
                     <p className="text-xs text-gray-400">
                       {r.timestamp.slice(0, 10)} · {formatHora(r.timestamp)}
+                      {r.hospitais?.nome && <span className="ml-2 text-blue-500">· {r.hospitais.nome}</span>}
                     </p>
                   </div>
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full ${

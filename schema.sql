@@ -54,6 +54,31 @@ create table if not exists admin_usuarios (
 alter table admin_usuarios enable row level security;
 create policy "service_all_admin_usuarios" on admin_usuarios for all using (true);
 
+-- Tabela de hospitais e clínicas
+create table if not exists hospitais (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  endereco text,
+  ativo boolean default true,
+  created_at timestamptz default now()
+);
+
+alter table hospitais enable row level security;
+create policy "service_all_hospitais" on hospitais for all using (true);
+
+-- Relação médico ↔ hospital
+create table if not exists medico_hospital (
+  medico_id uuid references medicos(id) on delete cascade,
+  hospital_id uuid references hospitais(id) on delete cascade,
+  primary key (medico_id, hospital_id)
+);
+
+alter table medico_hospital enable row level security;
+create policy "service_all_medico_hospital" on medico_hospital for all using (true);
+
+-- Adiciona coluna hospital_id à tabela de registros
+alter table registros add column if not exists hospital_id uuid references hospitais(id) on delete set null;
+
 -- Storage bucket para selfies (crie manualmente no Supabase)
 -- Nome: selfies
 -- Acesso: private

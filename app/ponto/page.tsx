@@ -199,7 +199,7 @@ function PontoContent() {
       <Screen>
         <div className="w-full max-w-sm flex flex-col gap-5">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800">Registro de Ponto</h2>
+            <h2 className="text-2xl font-bold text-gray-800">FlowIA</h2>
             <p className="text-gray-500 text-sm mt-1">Selecione seu nome</p>
           </div>
 

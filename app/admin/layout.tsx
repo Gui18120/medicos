@@ -67,8 +67,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">P</div>
-          <span className="font-bold text-gray-900 dark:text-white text-sm">Ponto Médico</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'}}>
+            <svg viewBox="0 0 32 32" className="w-5 h-5" fill="none">
+              <path d="M8 6h10a6 6 0 010 12H8V6z" fill="white" opacity="0.95"/>
+              <path d="M8 18v8" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="font-bold text-sm" style={{background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>FlowIA</span>
         </div>
       </div>
 
@@ -147,7 +152,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <span className="font-bold text-gray-900 dark:text-white text-sm">Ponto Médico</span>
+          <span className="font-bold text-gray-900 dark:text-white text-sm">FlowIA</span>
         </header>
 
         <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8">

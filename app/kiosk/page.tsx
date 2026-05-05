@@ -43,7 +43,7 @@ function KioskContent() {
     <div className="min-h-screen bg-blue-700 flex flex-col items-center justify-center text-white select-none">
       <div className="flex flex-col items-center gap-8 p-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Registro de Ponto</h1>
+          <h1 className="text-4xl font-bold tracking-tight">FlowIA</h1>
           <p className="text-blue-200 mt-1 capitalize">{today}</p>
         </div>
 

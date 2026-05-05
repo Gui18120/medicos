@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Ponto Médico',
-  description: 'Sistema de controle de ponto médico',
+  title: 'FlowIA',
+  description: 'Sistema de controle de ponto — FlowIA',
 }
 
 const themeScript = `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add(t);}catch(e){}})()`

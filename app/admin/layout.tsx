@@ -67,8 +67,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex flex-col leading-none">
-          <span className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Flow.ya</span>
-          <span className="text-base font-bold tracking-tight" style={{background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>crm.med</span>
+          <span className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">FlowIA</span>
+          <span className="text-base font-bold tracking-tight text-gray-400 dark:text-gray-500">crm.med</span>
         </div>
       </div>
 
@@ -148,8 +148,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div className="flex flex-col leading-none">
-            <span className="text-[9px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Flow.ya</span>
-            <span className="text-sm font-bold tracking-tight" style={{background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>crm.med</span>
+            <span className="text-[9px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">FlowIA</span>
+            <span className="text-sm font-bold tracking-tight text-gray-400 dark:text-gray-500">crm.med</span>
           </div>
         </header>
 

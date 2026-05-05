@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'crm.med — Flow.ya',
+  title: 'crm.med — FlowIA',
   description: 'Sistema de controle de ponto médico',
 }
 

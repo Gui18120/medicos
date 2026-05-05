@@ -49,7 +49,6 @@ function PontoContent() {
       .then(d => {
         if (d.valid) {
           setStep('search')
-          loadMedicos()
         } else {
           setStep('invalid')
         }
@@ -57,11 +56,13 @@ function PontoContent() {
       .catch(() => setStep('invalid'))
   }, [token, loadMedicos])
 
-  // Filtro de busca
+  // Filtro de busca — só busca médicos ao digitar 2+ letras
   useEffect(() => {
+    if (search.length < 2) { setFiltered([]); return }
+    if (medicos.length === 0) { loadMedicos(); return }
     const q = search.toLowerCase()
     setFiltered(medicos.filter(m => m.nome.toLowerCase().includes(q) || m.crm.includes(q)))
-  }, [search, medicos])
+  }, [search, medicos, loadMedicos])
 
   const startCamera = useCallback(async () => {
     try {
@@ -221,36 +222,28 @@ function PontoContent() {
           </div>
 
           {/* Busca */}
-          <div className="flex gap-2">
+          <div className="relative">
             <input
               type="text"
-              placeholder="Buscar por nome ou CRM..."
+              placeholder="Digite seu nome ou CRM..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button
-              onClick={loadMedicos}
-              disabled={loadingMedicos}
-              title="Atualizar lista"
-              className="px-3 py-3 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              {loadingMedicos ? (
-                <span className="block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              )}
-            </button>
+            {loadingMedicos && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            )}
           </div>
 
           {/* Lista */}
           <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
-            {filtered.length === 0 && (
+            {search.length < 2 && !selectedMedico && (
+              <p className="text-center text-gray-400 text-sm py-4">Digite pelo menos 2 letras para buscar</p>
+            )}
+            {search.length >= 2 && filtered.length === 0 && (
               <p className="text-center text-gray-400 text-sm py-4">Nenhum medico encontrado</p>
             )}
-            {filtered.map(m => (
+            {search.length >= 2 && filtered.map(m => (
               <button
                 key={m.id}
                 onClick={() => handleSelectMedico(m)}

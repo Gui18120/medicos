@@ -16,5 +16,5 @@ export async function GET(request: Request) {
 
   const secondsLeft = 30 - (Math.floor(Date.now() / 1000) % 30)
 
-  return NextResponse.json({ qr, secondsLeft })
+  return NextResponse.json({ qr, secondsLeft, url })
 }

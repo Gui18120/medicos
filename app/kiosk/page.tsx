@@ -1,15 +1,71 @@
 'use client'
 
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import jsQR from 'jsqr'
 
 function KioskContent() {
   const params = useSearchParams()
   const hospital = params.get('hospital') ?? ''
 
   const [qrDataUrl, setQrDataUrl] = useState<string>('')
+  const [pontoUrl, setPontoUrl] = useState<string>('')
   const [time, setTime] = useState('')
   const [secondsLeft, setSecondsLeft] = useState(30)
+  const [isMobile, setIsMobile] = useState(false)
+  const [scanning, setScanning] = useState(false)
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const animRef = useRef<number>(0)
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
+
+  const stopScanner = useCallback(() => {
+    cancelAnimationFrame(animRef.current)
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+    setScanning(false)
+  }, [])
+
+  const startScanner = useCallback(async () => {
+    setScanning(true)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      })
+      streamRef.current = stream
+      const video = videoRef.current!
+      video.srcObject = stream
+      await video.play()
+
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')!
+
+      const tick = () => {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          ctx.drawImage(video, 0, 0)
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const code = jsQR(img.data, img.width, img.height)
+          if (code?.data?.includes('/ponto?')) {
+            stopScanner()
+            window.location.href = code.data
+            return
+          }
+        }
+        animRef.current = requestAnimationFrame(tick)
+      }
+      animRef.current = requestAnimationFrame(tick)
+    } catch {
+      setScanning(false)
+    }
+  }, [stopScanner])
+
+  useEffect(() => () => stopScanner(), [stopScanner])
 
   const fetchQR = useCallback(async () => {
     try {
@@ -18,6 +74,7 @@ function KioskContent() {
       const data = await res.json()
       setQrDataUrl(data.qr)
       setSecondsLeft(data.secondsLeft)
+      setPontoUrl(data.url)
     } catch {
       // silently retry
     }
@@ -38,6 +95,62 @@ function KioskContent() {
   const today = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
   })
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-blue-700 flex flex-col items-center justify-center text-white p-6">
+        <div className="flex flex-col items-center gap-5 text-center w-full max-w-xs">
+          <h1 className="text-3xl font-bold tracking-tight">FlowIA</h1>
+
+          {scanning ? (
+            <>
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black">
+                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+                {/* mira */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-48 h-48 border-4 border-white rounded-2xl opacity-70" />
+                </div>
+              </div>
+              <p className="text-blue-200 text-sm">Aponte para o QR Code do tablet</p>
+              <button
+                onClick={stopScanner}
+                className="w-full bg-white/20 text-white font-semibold py-3 rounded-2xl active:scale-95 transition-transform"
+              >
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-blue-200 text-sm">Escolha como registrar seu ponto</p>
+
+              <button
+                onClick={startScanner}
+                className="w-full bg-white text-blue-700 font-bold text-lg py-4 rounded-2xl shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9V6a1 1 0 011-1h3M3 15v3a1 1 0 001 1h3m11-4v3a1 1 0 01-1 1h-3m4-11h-3a1 1 0 00-1 1v3"/>
+                </svg>
+                Escanear QR do tablet
+              </button>
+
+              {pontoUrl && (
+                <a
+                  href={pontoUrl}
+                  className="w-full bg-white/20 text-white font-semibold py-3 rounded-2xl active:scale-95 transition-transform"
+                >
+                  Registrar com token atual
+                </a>
+              )}
+
+              <p className="text-blue-300 text-xs mt-1">
+                Use "Escanear" para apontar a câmera para o QR exibido no tablet da recepção.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-blue-700 flex flex-col items-center justify-center text-white select-none">

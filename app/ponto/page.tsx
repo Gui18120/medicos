@@ -35,7 +35,6 @@ function PontoContent() {
       const r = await fetch('/api/medicos')
       const d = await r.json()
       setMedicos(d.medicos || [])
-      setFiltered(d.medicos || [])
     } finally {
       setLoadingMedicos(false)
     }

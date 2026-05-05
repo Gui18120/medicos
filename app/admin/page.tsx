@@ -12,6 +12,15 @@ type Registro = {
   medicos: { nome: string; crm: string }
 }
 
+function StatCard({ label, value, color }: { label: string; value: number | string; color: string }) {
+  return (
+    <div className={`rounded-2xl p-5 ${color}`}>
+      <p className="text-3xl font-bold">{value}</p>
+      <p className="text-sm font-medium mt-1 opacity-75">{label}</p>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const [registros, setRegistros] = useState<Registro[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,8 +43,6 @@ export default function DashboardPage() {
 
   const entradas = registros.filter(r => r.tipo === 'entrada')
   const saidas = registros.filter(r => r.tipo === 'saida')
-  const presentes = new Set(entradas.map(r => r.medicos?.nome)).size
-  const sairam = new Set(saidas.map(r => r.medicos?.nome)).size
 
   const formatHora = (ts: string) =>
     new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -45,94 +52,77 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-5xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500 text-sm capitalize">{formatData}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm capitalize mt-0.5">{formatData}</p>
         </div>
         <button
           onClick={fetchData}
-          className="px-4 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Atualizar
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Registros hoje', value: registros.length, color: 'bg-blue-50 text-blue-700' },
-          { label: 'Entradas', value: entradas.length, color: 'bg-green-50 text-green-700' },
-          { label: 'Saidas', value: saidas.length, color: 'bg-red-50 text-red-600' },
-        ].map(stat => (
-          <div key={stat.label} className={`rounded-2xl p-5 ${stat.color}`}>
-            <p className="text-3xl font-bold">{stat.value}</p>
-            <p className="text-sm font-medium mt-1 opacity-80">{stat.label}</p>
-          </div>
-        ))}
+        <StatCard label="Registros hoje" value={registros.length} color="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400" />
+        <StatCard label="Entradas" value={entradas.length} color="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400" />
+        <StatCard label="Saídas" value={saidas.length} color="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400" />
       </div>
 
-      {/* Registros */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800">Registros de hoje</h2>
+      {/* Lista */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+          <h2 className="font-semibold text-gray-900 dark:text-white">Registros de hoje</h2>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-16">
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : registros.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">Nenhum registro hoje.</div>
+          <div className="text-center py-16 text-gray-400 dark:text-gray-600">
+            <svg className="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Nenhum registro hoje
+          </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {registros.map(r => (
-              <div key={r.id} className="px-6 py-4 flex items-center gap-4">
-                {/* Selfie */}
+              <div key={r.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 {r.selfie_url ? (
-                  <img
-                    src={r.selfie_url}
-                    alt="selfie"
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-gray-100"
-                  />
+                  <img src={r.selfie_url} alt="selfie" className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-gray-100 dark:ring-gray-800" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0 text-sm font-bold">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-700 dark:text-blue-400 flex-shrink-0 text-sm font-bold">
                     {r.medicos?.nome?.charAt(0) ?? '?'}
                   </div>
                 )}
-
-                {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800 truncate">{r.medicos?.nome ?? '—'}</p>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{r.medicos?.nome ?? '—'}</p>
                   <p className="text-xs text-gray-400">CRM: {r.medicos?.crm ?? '—'}</p>
                 </div>
-
-                {/* Tipo */}
-                <span
-                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                    r.tipo === 'entrada'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-600'
-                  }`}
-                >
-                  {r.tipo === 'entrada' ? 'Entrada' : 'Saida'}
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                  r.tipo === 'entrada'
+                    ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400'
+                    : 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
+                }`}>
+                  {r.tipo === 'entrada' ? 'Entrada' : 'Saída'}
                 </span>
-
-                {/* Hora */}
-                <span className="text-sm text-gray-500 font-mono w-14 text-right flex-shrink-0">
+                <span className="text-sm text-gray-400 font-mono w-12 text-right flex-shrink-0">
                   {formatHora(r.timestamp)}
                 </span>
-
-                {/* GPS */}
                 {r.latitude && r.longitude && (
                   <a
                     href={`https://maps.google.com/?q=${r.latitude},${r.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:text-blue-700 flex-shrink-0"
+                    className="text-xs text-blue-500 hover:text-blue-600 flex-shrink-0"
                   >
-                    Ver mapa
+                    GPS
                   </a>
                 )}
               </div>

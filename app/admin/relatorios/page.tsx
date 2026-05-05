@@ -92,7 +92,7 @@ export default function RelatoriosPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Relatorios</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Relatórios</h1>
         <button
           onClick={exportCSV}
           className="px-5 py-2 bg-green-600 text-white rounded-xl font-medium text-sm hover:bg-green-700 transition-colors"
@@ -102,7 +102,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-5">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-500 font-medium">Data inicio</label>
@@ -110,7 +110,7 @@ export default function RelatoriosPage() {
               type="date"
               value={inicio}
               onChange={e => setInicio(e.target.value)}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -119,7 +119,7 @@ export default function RelatoriosPage() {
               type="date"
               value={fim}
               onChange={e => setFim(e.target.value)}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <button
@@ -194,7 +194,7 @@ export default function RelatoriosPage() {
           {resumo.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center text-gray-400">Nenhum dado no periodo.</div>
           ) : resumo.map(m => (
-            <div key={m.medico} className="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div key={m.medico} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-sm">
@@ -209,7 +209,7 @@ export default function RelatoriosPage() {
                   })()}
                 </span>
               </div>
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {m.dias.map(d => (
                   <div key={d.dia} className="px-6 py-3 flex items-center justify-between text-sm">
                     <span className="text-gray-600 w-28">{formatDia(d.dia)}</span>
@@ -223,11 +223,11 @@ export default function RelatoriosPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
           {registros.length === 0 ? (
             <div className="text-center py-12 text-gray-400">Nenhum registro no periodo.</div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {registros.map(r => (
                 <div key={r.id} className="px-6 py-4 flex items-center gap-4">
                   {r.selfie_url ? (

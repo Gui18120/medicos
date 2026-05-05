@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 
-// Gera o session token usando Web Crypto API (compatível com Edge Runtime)
-async function getExpectedToken(): Promise<string> {
-  const secret = process.env.TOKEN_SECRET || 'change-this-secret-in-production'
-  const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode('admin-session'))
-  return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('')
+const SECRET = process.env.TOKEN_SECRET || 'change-this-secret-in-production'
+
+function validateSession(value: string | undefined): boolean {
+  if (!value) return false
+
+  // Novo formato: userId:cargo:hmac
+  const parts = value.split(':')
+  if (parts.length === 3) {
+    const [userId, cargo, hmac] = parts
+    const expectedHmac = crypto.createHmac('sha256', SECRET).update(`${userId}:${cargo}`).digest('hex')
+    try {
+      if (crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) return true
+    } catch {}
+  }
+
+  // Formato legado: string hex única
+  const legacy = crypto.createHmac('sha256', SECRET).update('admin-session').digest('hex')
+  return value === legacy
 }
 
 export async function proxy(request: NextRequest) {
@@ -20,11 +26,7 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const session = request.cookies.get('admin_session')?.value
-    if (!session) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
-    const expected = await getExpectedToken()
-    if (session !== expected) {
+    if (!validateSession(session)) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }

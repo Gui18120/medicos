@@ -41,6 +41,19 @@ create policy "anon_insert_registros" on registros for insert with check (true);
 create policy "service_all_medicos" on medicos for all using (true);
 create policy "service_all_registros" on registros for all using (true);
 
+-- Tabela de usuários administradores
+create table if not exists admin_usuarios (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null unique,
+  senha_hash text not null,
+  cargo text not null default 'admin' check (cargo in ('admin')),
+  ativo boolean default true,
+  created_at timestamptz default now()
+);
+
+alter table admin_usuarios enable row level security;
+create policy "service_all_admin_usuarios" on admin_usuarios for all using (true);
+
 -- Storage bucket para selfies (crie manualmente no Supabase)
 -- Nome: selfies
 -- Acesso: private

@@ -68,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex flex-col leading-none">
           <span className="text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">FlowIA</span>
-          <span className="text-base font-bold tracking-tight text-gray-400 dark:text-gray-500">crm.med</span>
+          <span className="text-base font-bold tracking-tight text-gray-400 dark:text-gray-500">CRM MEDICO SALVADOR</span>
         </div>
       </div>
 
@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
           <div className="flex flex-col leading-none">
             <span className="text-[9px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">FlowIA</span>
-            <span className="text-sm font-bold tracking-tight text-gray-400 dark:text-gray-500">crm.med</span>
+            <span className="text-sm font-bold tracking-tight text-gray-400 dark:text-gray-500">CRM MEDICO SALVADOR</span>
           </div>
         </header>
 

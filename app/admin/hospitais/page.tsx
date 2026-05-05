@@ -19,6 +19,7 @@ export default function HospitaisPage() {
   const [allMedicos, setAllMedicos] = useState<Medico[]>([])
   const [medicosPorHospital, setMedicosPorHospital] = useState<Record<string, Medico[]>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [medicoSearch, setMedicoSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(emptyForm)
   const [editId, setEditId] = useState<string | null>(null)
@@ -52,8 +53,9 @@ export default function HospitaisPage() {
   }
 
   const toggleExpand = async (id: string) => {
-    if (expandedId === id) { setExpandedId(null); return }
+    if (expandedId === id) { setExpandedId(null); setMedicoSearch(''); return }
     setExpandedId(id)
+    setMedicoSearch('')
     if (!medicosPorHospital[id]) await fetchMedicosHospital(id)
   }
 
@@ -226,27 +228,52 @@ export default function HospitaisPage() {
             {/* Médicos do hospital */}
             {expandedId === h.id && (
               <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4">
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Médicos neste local</p>
-                <div className="flex flex-col gap-2">
-                  {allMedicos.length === 0 ? (
-                    <p className="text-sm text-gray-400">Nenhum médico cadastrado no sistema.</p>
-                  ) : allMedicos.map(m => {
-                    const assigned = (medicosPorHospital[h.id] ?? []).some(am => am.id === m.id)
-                    return (
-                      <label key={m.id} className="flex items-center gap-3 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={assigned}
-                          onChange={() => handleToggleMedico(h.id, m, assigned)}
-                          className="w-4 h-4 rounded text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                          {m.nome} <span className="text-gray-400 text-xs">· {m.crm}</span>
-                        </span>
-                      </label>
-                    )
-                  })}
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Médicos neste local
+                    {(medicosPorHospital[h.id] ?? []).length > 0 && (
+                      <span className="ml-2 normal-case font-normal text-blue-500">
+                        {(medicosPorHospital[h.id] ?? []).length} vinculado{(medicosPorHospital[h.id] ?? []).length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </p>
                 </div>
+                {allMedicos.length === 0 ? (
+                  <p className="text-sm text-gray-400">Nenhum médico cadastrado no sistema.</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      placeholder="Pesquisar médico..."
+                      value={medicoSearch}
+                      onChange={e => setMedicoSearch(e.target.value)}
+                      className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                    <div className="max-h-48 overflow-y-auto flex flex-col gap-1.5 pr-1">
+                      {allMedicos
+                        .filter(m => m.nome.toLowerCase().includes(medicoSearch.toLowerCase()) || m.crm.includes(medicoSearch))
+                        .map(m => {
+                          const assigned = (medicosPorHospital[h.id] ?? []).some(am => am.id === m.id)
+                          return (
+                            <label key={m.id} className="flex items-center gap-3 cursor-pointer group px-1">
+                              <input
+                                type="checkbox"
+                                checked={assigned}
+                                onChange={() => handleToggleMedico(h.id, m, assigned)}
+                                className="w-4 h-4 rounded text-blue-600 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-blue-500 cursor-pointer flex-shrink-0"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                                {m.nome} <span className="text-gray-400 text-xs">· {m.crm}</span>
+                              </span>
+                            </label>
+                          )
+                        })}
+                      {allMedicos.filter(m => m.nome.toLowerCase().includes(medicoSearch.toLowerCase()) || m.crm.includes(medicoSearch)).length === 0 && (
+                        <p className="text-xs text-gray-400 py-2 text-center">Nenhum médico encontrado</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

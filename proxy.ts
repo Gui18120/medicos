@@ -3,8 +3,8 @@ import crypto from 'crypto'
 
 const SECRET = process.env.TOKEN_SECRET || 'change-this-secret-in-production'
 
-function validateSession(value: string | undefined): boolean {
-  if (!value) return false
+function parseSession(value: string | undefined): { userId: string; cargo: string } | null {
+  if (!value) return null
 
   // Novo formato: userId:cargo:hmac
   const parts = value.split(':')
@@ -12,13 +12,17 @@ function validateSession(value: string | undefined): boolean {
     const [userId, cargo, hmac] = parts
     const expectedHmac = crypto.createHmac('sha256', SECRET).update(`${userId}:${cargo}`).digest('hex')
     try {
-      if (crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) return true
+      if (crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+        return { userId, cargo }
+      }
     } catch {}
   }
 
-  // Formato legado: string hex única
+  // Formato legado: admin master
   const legacy = crypto.createHmac('sha256', SECRET).update('admin-session').digest('hex')
-  return value === legacy
+  if (value === legacy) return { userId: 'master', cargo: 'admin' }
+
+  return null
 }
 
 export async function proxy(request: NextRequest) {
@@ -26,8 +30,15 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const session = request.cookies.get('admin_session')?.value
-    if (!validateSession(session)) {
+    const parsed = parseSession(session)
+
+    if (!parsed) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+
+    // Médico só acessa o kiosk
+    if (parsed.cargo === 'medico') {
+      return NextResponse.redirect(new URL('/kiosk', request.url))
     }
   }
 

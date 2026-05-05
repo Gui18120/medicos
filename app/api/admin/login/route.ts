@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   const sessionToken = buildSessionCookie(userId, cargo)
-  const response = NextResponse.json({ ok: true })
+  const response = NextResponse.json({ ok: true, cargo })
 
   response.cookies.set('admin_session', sessionToken, {
     httpOnly: true,

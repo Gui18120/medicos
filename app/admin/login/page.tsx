@@ -22,7 +22,8 @@ export default function LoginPage() {
     })
 
     if (res.ok) {
-      router.push('/admin')
+      const d = await res.json()
+      router.push(d.cargo === 'medico' ? '/kiosk' : '/admin')
     } else {
       const d = await res.json()
       setError(d.error || 'Erro ao entrar.')

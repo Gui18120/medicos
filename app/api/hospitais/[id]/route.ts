@@ -12,6 +12,18 @@ async function isAdmin() {
   return session === getAdminSessionToken()
 }
 
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { data, error } = await supabaseAdmin
+    .from('hospitais')
+    .select('id, nome, endereco')
+    .eq('id', id)
+    .eq('ativo', true)
+    .single()
+  if (error || !data) return NextResponse.json({ error: 'Hospital não encontrado' }, { status: 404 })
+  return NextResponse.json({ hospital: data })
+}
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await params

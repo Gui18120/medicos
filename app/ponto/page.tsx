@@ -20,6 +20,7 @@ function PontoContent() {
   const [searched, setSearched] = useState(false)
   const [loadingMedicos, setLoadingMedicos] = useState(false)
   const [selectedMedico, setSelectedMedico] = useState<Medico | null>(null)
+  const [hospitalNome, setHospitalNome] = useState<string>('')
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState('')
   const [selfieDataUrl, setSelfieDataUrl] = useState<string>('')
@@ -43,20 +44,27 @@ function PontoContent() {
     }
   }, [])
 
-  // Valida token
+  // Valida token e busca nome do hospital
   useEffect(() => {
     if (!token) { setStep('invalid'); return }
-    fetch(`/api/token/validate?token=${token}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.valid) {
+    const init = async () => {
+      try {
+        const [tokenRes, hospitalRes] = await Promise.all([
+          fetch(`/api/token/validate?token=${token}`).then(r => r.json()),
+          hospitalId ? fetch(`/api/hospitais/${hospitalId}`).then(r => r.json()) : Promise.resolve(null),
+        ])
+        if (tokenRes.valid) {
+          if (hospitalRes?.hospital?.nome) setHospitalNome(hospitalRes.hospital.nome)
           setStep('search')
         } else {
           setStep('invalid')
         }
-      })
-      .catch(() => setStep('invalid'))
-  }, [token])
+      } catch {
+        setStep('invalid')
+      }
+    }
+    init()
+  }, [token, hospitalId])
 
   const handleSearch = async () => {
     if (search.trim().length < 2) return
@@ -205,7 +213,14 @@ function PontoContent() {
         <div className="w-full max-w-sm flex flex-col gap-5">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-800">FlowIA</h2>
-            <p className="text-gray-500 text-sm mt-1">Selecione seu nome</p>
+            {hospitalNome ? (
+              <div className="mt-2 inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                {hospitalNome}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm mt-1">Registrar ponto</p>
+            )}
           </div>
 
           {/* Tipo */}
@@ -372,9 +387,15 @@ function PontoContent() {
             />
           )}
           <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-3xl">V</div>
-          <div>
+          <div className="flex flex-col items-center gap-2">
             <h2 className="text-2xl font-bold text-gray-800">Ponto registrado!</h2>
-            <p className="text-gray-500 text-sm mt-2 max-w-xs">{successMsg}</p>
+            <p className="text-gray-500 text-sm max-w-xs">{successMsg}</p>
+            {hospitalNome && (
+              <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mt-1">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                {hospitalNome}
+              </div>
+            )}
           </div>
           <p className="text-gray-400 text-xs">Voce ja pode fechar esta pagina.</p>
         </div>

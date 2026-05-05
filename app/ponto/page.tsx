@@ -17,6 +17,7 @@ function PontoContent() {
   const [medicos, setMedicos] = useState<Medico[]>([])
   const [filtered, setFiltered] = useState<Medico[]>([])
   const [search, setSearch] = useState('')
+  const [searched, setSearched] = useState(false)
   const [loadingMedicos, setLoadingMedicos] = useState(false)
   const [selectedMedico, setSelectedMedico] = useState<Medico | null>(null)
   const [pin, setPin] = useState('')
@@ -29,12 +30,14 @@ function PontoContent() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
-  const loadMedicos = useCallback(async () => {
+  const loadMedicos = useCallback(async (): Promise<Medico[]> => {
     setLoadingMedicos(true)
     try {
       const r = await fetch('/api/medicos')
       const d = await r.json()
-      setMedicos(d.medicos || [])
+      const lista: Medico[] = d.medicos || []
+      setMedicos(lista)
+      return lista
     } finally {
       setLoadingMedicos(false)
     }
@@ -53,15 +56,15 @@ function PontoContent() {
         }
       })
       .catch(() => setStep('invalid'))
-  }, [token, loadMedicos])
+  }, [token])
 
-  // Filtro de busca — só busca médicos ao digitar 2+ letras
-  useEffect(() => {
-    if (search.length < 2) { setFiltered([]); return }
-    if (medicos.length === 0) { loadMedicos(); return }
-    const q = search.toLowerCase()
-    setFiltered(medicos.filter(m => m.nome.toLowerCase().includes(q) || m.crm.includes(q)))
-  }, [search, medicos, loadMedicos])
+  const handleSearch = async () => {
+    if (search.trim().length < 2) return
+    const lista = medicos.length > 0 ? medicos : await loadMedicos()
+    const q = search.toLowerCase().trim()
+    setFiltered(lista.filter(m => m.nome.toLowerCase().includes(q) || m.crm.includes(q)))
+    setSearched(true)
+  }
 
   const startCamera = useCallback(async () => {
     try {
@@ -90,6 +93,8 @@ function PontoContent() {
 
   const handleSelectMedico = (medico: Medico) => {
     setSelectedMedico(medico)
+    setSearched(false)
+    setSearch('')
     setPinError('')
     setPin('')
   }
@@ -221,51 +226,72 @@ function PontoContent() {
           </div>
 
           {/* Busca */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Digite seu nome ou CRM..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {loadingMedicos && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-            )}
-          </div>
+          {!selectedMedico && (
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Digite seu nome ou CRM..."
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setSearched(false) }}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleSearch}
+                  disabled={loadingMedicos || search.trim().length < 2}
+                  className="px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-colors"
+                >
+                  {loadingMedicos ? (
+                    <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : 'Buscar'}
+                </button>
+              </div>
 
-          {/* Lista */}
-          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
-            {search.length < 2 && !selectedMedico && (
-              <p className="text-center text-gray-400 text-sm py-4">Digite pelo menos 2 letras para buscar</p>
-            )}
-            {search.length >= 2 && filtered.length === 0 && (
-              <p className="text-center text-gray-400 text-sm py-4">Nenhum medico encontrado</p>
-            )}
-            {search.length >= 2 && filtered.map(m => (
-              <button
-                key={m.id}
-                onClick={() => handleSelectMedico(m)}
-                className={`flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
-                  selectedMedico?.id === m.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-100 hover:border-gray-200 bg-white'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-sm flex-shrink-0">
-                  {m.nome.charAt(0)}
+              {searched && (
+                <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
+                  {filtered.length === 0 ? (
+                    <p className="text-center text-gray-400 text-sm py-4">Nenhum médico encontrado</p>
+                  ) : filtered.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => handleSelectMedico(m)}
+                      className="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 hover:border-blue-400 bg-white text-left transition-all"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-sm flex-shrink-0">
+                        {m.nome.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm">{m.nome}</p>
+                        <p className="text-gray-400 text-xs">CRM: {m.crm}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <p className="font-medium text-gray-800 text-sm">{m.nome}</p>
-                  <p className="text-gray-400 text-xs">CRM: {m.crm}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
 
-          {/* PIN */}
+          {/* Médico selecionado + PIN */}
           {selectedMedico && (
             <div className="flex flex-col gap-3 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-sm flex-shrink-0">
+                    {selectedMedico.nome.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{selectedMedico.nome}</p>
+                    <p className="text-gray-400 text-xs">CRM: {selectedMedico.crm}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setSelectedMedico(null); setPin(''); setPinError('') }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Trocar
+                </button>
+              </div>
               <p className="text-sm font-medium text-gray-700">Digite seu PIN (4 digitos)</p>
               <input
                 type="password"
